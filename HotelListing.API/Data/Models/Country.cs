@@ -1,4 +1,6 @@
-﻿namespace HotelListing.API.Data.Models
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace HotelListing.API.Data.Models
 {
     public class Country
     {
@@ -6,6 +8,7 @@
         public string Name { get; set; }
         public string ShortName { get; set; }
 
+        [AllowNull]
         public virtual IList<Hotel> Hotels { get; set; }
     }
 }
