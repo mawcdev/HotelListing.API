@@ -1,0 +1,5 @@
+2024-05-28 13:37:59.287 +08:00 [INF] Now listening on: https://localhost:7254
+2024-05-28 13:37:59.372 +08:00 [INF] Now listening on: http://localhost:5196
+2024-05-28 13:37:59.379 +08:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-05-28 13:37:59.382 +08:00 [INF] Hosting environment: Development
+2024-05-28 13:37:59.384 +08:00 [INF] Content root path: C:\Users\marcl\Documents\Projects\.net\.net core\HotelListing.API\HotelListing.API
