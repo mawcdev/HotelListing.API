@@ -11,6 +11,7 @@ using HotelListing.API.Data.Dto.Country;
 using AutoMapper;
 using HotelListing.API.Contracts;
 using Microsoft.AspNetCore.Authorization;
+using HotelListing.API.Exceptions;
 
 namespace HotelListing.API.Controllers
 {
@@ -21,11 +22,13 @@ namespace HotelListing.API.Controllers
     {
         private readonly ICountriesRepository _repo;
         private readonly IMapper _mapper; 
+        private readonly ILogger<CountriesController> _logger;
 
-        public CountriesController(ICountriesRepository repo, IMapper mapper)
+        public CountriesController(ICountriesRepository repo, IMapper mapper, ILogger<CountriesController> logger)
         {
             _repo = repo;
             _mapper = mapper;
+            _logger = logger;
         }
 
         // GET: api/Countries
@@ -46,7 +49,9 @@ namespace HotelListing.API.Controllers
 
             if (country == null)
             {
-                return NotFound();
+                //_logger.LogWarning($"No record found in {nameof(GetCountry)} with Id: {id}.");
+                throw new NotFoundException(nameof(GetCountry), id);
+                //return NotFound();
             }
 
             var getCountry = _mapper.Map<CountryDto>(country);
@@ -61,14 +66,14 @@ namespace HotelListing.API.Controllers
         {
             if (id != updateCountry.Id)
             {
-                return BadRequest();
+                return BadRequest("Invalid record Id");
             }
 
             //_context.Entry(country).State = EntityState.Modified;
             var getCountry = await _repo.GetAsync(id); //.Countries.FindAsync(id);
             if(getCountry == null)
             {
-                return NotFound();
+                throw new NotFoundException(nameof(PutCountry), id);
             }
             _mapper.Map(updateCountry, getCountry);
 
@@ -80,7 +85,7 @@ namespace HotelListing.API.Controllers
             {
                 if (!await CountryExistsAsync(id))
                 {
-                    return NotFound();
+                    throw new NotFoundException(nameof(PutCountry), id);
                 }
                 else
                 {
@@ -111,7 +116,7 @@ namespace HotelListing.API.Controllers
             var country = await _repo.GetAsync(id); //.Countries.FindAsync(id);
             if (country == null)
             {
-                return NotFound();
+                throw new NotFoundException(nameof(DeleteCountry), id);
             }
 
             await _repo.DeleteAsync(id); //.Countries.Remove(country);

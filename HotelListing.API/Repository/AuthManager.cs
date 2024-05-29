@@ -16,23 +16,26 @@ namespace HotelListing.API.Repository
         private readonly UserManager<ApiUser> _context;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
+        private readonly ILogger<AuthManager> _logger;
         private ApiUser _user;
 
         private const string LOGIN_PROVIDER = "HotelListingApi";
         private const string REFRESH_TOKEN = "RefreshToken";
-        public AuthManager(UserManager<ApiUser> context, IMapper mapper, IConfiguration config)
+        public AuthManager(UserManager<ApiUser> context, IMapper mapper, IConfiguration config, ILogger<AuthManager> logger)
         {
             _context = context;
             _mapper = mapper;
             _config = config;
+            _logger = logger;
         }
 
         public async Task<AuthResponseDto> Login(LoginUserDto loginDto)
         {
-
+            _logger.LogInformation($"Looking for user with email {loginDto.Email}.");
             _user = await _context.FindByEmailAsync(loginDto.Email);
             if (_user == null)
             {
+                _logger.LogWarning($"User with email {loginDto.Email} was not found.");
                 return null;
 
             }
@@ -40,9 +43,12 @@ namespace HotelListing.API.Repository
             var validPassword = await _context.CheckPasswordAsync(_user, loginDto.Password);
             if (!validPassword)
             {
+                _logger.LogWarning($"Wrong credentials for uUser with email {loginDto.Email}.");
                 return null;
             }
             var token = await GenerateToken();
+
+            _logger.LogInformation($"Token generation successful for user with email {loginDto.Email} | Token: {token}.");
             //   return validPassword;
             return new AuthResponseDto
             {

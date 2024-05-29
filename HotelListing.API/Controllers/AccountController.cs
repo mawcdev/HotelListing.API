@@ -3,6 +3,7 @@ using HotelListing.API.Data.Dto.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 
 namespace HotelListing.API.Controllers
 {
@@ -11,9 +12,11 @@ namespace HotelListing.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAuthManager _manager;
-        public AccountController(IAuthManager manager)
+        private readonly ILogger<AccountController> _logger;
+        public AccountController(IAuthManager manager, ILogger<AccountController> logger)
         {
             _manager = manager;
+            _logger = logger;
         }
 
         // POST: api/account/register
@@ -25,6 +28,7 @@ namespace HotelListing.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Register([FromBody] ApiUserDto userDto)
         {
+            _logger.LogInformation($"Registration attempt for {userDto.Email}");
             if (userDto == null)
             {
                 return BadRequest();
@@ -52,6 +56,7 @@ namespace HotelListing.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Login([FromBody] LoginUserDto loginDto)
         {
+            _logger.LogInformation($"Login attempt for {loginDto.Email}");
             var authResponse = await _manager.Login(loginDto);
 
             if (authResponse == null)
@@ -71,9 +76,10 @@ namespace HotelListing.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> RefreshToken([FromBody] AuthResponseDto request)
         {
+            _logger.LogInformation($"Refresh token attempt for {request.UserId}");
             var authResponse = await _manager.VerifyRefreshToken(request);
 
-            if(authResponse == null)
+            if (authResponse == null)
             {
                 return Unauthorized();
             }
