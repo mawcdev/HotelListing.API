@@ -10,11 +10,13 @@ using HotelListing.API.Data.Models;
 using HotelListing.API.Data.Dto.Country;
 using AutoMapper;
 using HotelListing.API.Contracts;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HotelListing.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CountriesController : ControllerBase
     {
         private readonly ICountriesRepository _repo;
@@ -103,6 +105,7 @@ namespace HotelListing.API.Controllers
 
         // DELETE: api/Countries/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> DeleteCountry(int id)
         {
             var country = await _repo.GetAsync(id); //.Countries.FindAsync(id);
