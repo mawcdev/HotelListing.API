@@ -12,12 +12,13 @@ using AutoMapper;
 using HotelListing.API.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using HotelListing.API.Exceptions;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace HotelListing.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
-    [Authorize]
+    [ApiVersion("1.0")]
     public class CountriesController : ControllerBase
     {
         private readonly ICountriesRepository _repo;
@@ -33,6 +34,7 @@ namespace HotelListing.API.Controllers
 
         // GET: api/Countries
         [HttpGet]
+        [EnableQuery]
         public async Task<ActionResult<IEnumerable<GetCountryDto>>> GetCountries()
         {
             var countries = await _repo.GetAllAsync();
@@ -40,9 +42,28 @@ namespace HotelListing.API.Controllers
             return Ok(getCountry);
         }
 
-        // GET: api/Countries/5
+        // GET: api/Countries/Details/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<CountryDto>> GetCountry(int id)
+        public async Task<ActionResult<GetCountryDto>> GetCountry(int id)
+        {
+            var country = await _repo.GetAsync(id);//.GetAsync(id); //.Countries.Include(h => h.Hotels)
+                                                          //.FirstOrDefaultAsync(c => c.Id == id);
+
+            if (country == null)
+            {
+                //_logger.LogWarning($"No record found in {nameof(GetCountry)} with Id: {id}.");
+                throw new NotFoundException(nameof(GetCountry), id);
+                //return NotFound();
+            }
+
+            var getCountry = _mapper.Map<GetCountryDto>(country);
+
+            return Ok(getCountry);
+        }
+
+        // GET: api/Countries/Details/5
+        [HttpGet("Details/{id}")]
+        public async Task<ActionResult<CountryDto>> GetCountryDetails(int id)
         {
             var country = await _repo.GetDetailsAsync(id);//.GetAsync(id); //.Countries.Include(h => h.Hotels)
                 //.FirstOrDefaultAsync(c => c.Id == id);

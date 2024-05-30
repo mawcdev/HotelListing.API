@@ -10,8 +10,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using Serilog;
 using System.Text;
 
@@ -31,7 +33,6 @@ builder.Services.AddIdentityCore<ApiUser>().
     .AddEntityFrameworkStores<HotelListingDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -52,6 +53,15 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod());
 });
 
+
+/// <summary>
+/// This shows the Api Versioning set up
+/// </summary>
+/// <remarks>
+/// <note>
+/// This example demonstrates the addition of Api versioning on our Api
+/// </note>
+/// </remarks>
 builder.Services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = true;
@@ -69,6 +79,7 @@ builder.Services.AddVersionedApiExplorer(options =>
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
 });
+/// Api versioning
 
 /// <summary>
 /// This shows the Serilog Setup.
@@ -89,6 +100,26 @@ builder.Services.AddScoped<IHotelsRepository, HotelsRepository>();
 builder.Services.AddScoped<IAuthManager, AuthManager>();
 
 AuthConfigurer.Configure(builder.Services, builder.Configuration);
+
+/// <summary>
+/// Caching Setup
+/// </summary>
+/// <remarks>
+/// <note>
+/// This example shows how to set up caching in our api
+/// </note>
+/// </remarks>
+builder.Services.AddResponseCaching(options =>
+{
+    options.MaximumBodySize = 1024;
+    options.UseCaseSensitivePaths = true;
+});
+
+builder.Services.AddControllers()
+    .AddOData(options =>
+    {
+        options.Select().Filter().OrderBy();
+    });
 
 var app = builder.Build();
 
@@ -122,6 +153,39 @@ app.UseHttpsRedirection();
 /// </note>
 /// </remarks>
 app.UseCors("AllowAll");
+if (bool.Parse(app.Configuration["Caching:IsEnabled"]))
+{
+    /// <summary>
+    /// This shows how to use response caching.
+    /// </summary>
+    /// <remarks>
+    /// <note>
+    /// This example demonstrates how to tell our program to use response caching.
+    /// </note>
+    /// </remarks>
+    app.UseResponseCaching();
+
+    /// <summary>
+    /// This shows how to use an inline middleware for response caching.
+    /// </summary>
+    /// <remarks>
+    /// <note>
+    /// This example demonstrates how to apply the response caching to every http context.
+    /// </note>
+    /// </remarks>
+    app.Use(async (context, next) =>
+    {
+        context.Response.GetTypedHeaders().CacheControl =
+            new CacheControlHeaderValue()
+            {
+                Public = true,
+                MaxAge = TimeSpan.FromSeconds(double.Parse(app.Configuration["Caching:MaxAgeInSeconds"]))
+            };
+        string[] headerVary = ["Accept-Encoding"];
+        context.Response.Headers[HeaderNames.Vary] = headerVary;
+        await next();
+    });
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
