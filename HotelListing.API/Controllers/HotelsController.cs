@@ -6,16 +6,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelListing.API.Data;
-using HotelListing.API.Data.Models;
 using AutoMapper;
-using HotelListing.API.Data.Dto.Hotel;
-using HotelListing.API.Contracts;
 using Microsoft.AspNetCore.Authorization;
+using HotelListing.API.Core.Contracts;
+using HotelListing.API.Core.Models;
+using HotelListing.API.Core.Models.Dto.Hotel;
 
 namespace HotelListing.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class HotelsController : ControllerBase
     {
         private readonly IHotelsRepository _repo;
@@ -61,7 +62,7 @@ namespace HotelListing.API.Controllers
 
             try
             {
-                await _repo.UpdateAsync<UpdateHotelDto>(id, updateHotel);
+                await _repo.UpdateAsync(id, updateHotel);
             }
             catch (DbUpdateConcurrencyException)
             {
