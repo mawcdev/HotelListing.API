@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using HotelListing.API.Data.Entity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HotelListing.API.Data
 {
-    public class Hotel
+    public class Hotel : AuditedEntity, IEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -10,16 +10,26 @@ namespace HotelListing.API.Data
         {
             using (var serviceScope = app.ApplicationServices.CreateScope())
             {
-                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<ApiRole>>();
 
                 if (!await roleManager.RoleExistsAsync(UserRoles.Admin))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+                    var newAdminRole = new ApiRole
+                    {
+                        Name = UserRoles.Admin,
+                        Description = UserRoles.Admin
+                    };
+                    await roleManager.CreateAsync(newAdminRole);
                 }
 
                 if (!await roleManager.RoleExistsAsync(UserRoles.User))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+                    var newUserRole = new ApiRole
+                    {
+                        Name = UserRoles.User,
+                        Description = UserRoles.User
+                    };
+                    await roleManager.CreateAsync(newUserRole);
                 }
 
                 var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApiUser>>();

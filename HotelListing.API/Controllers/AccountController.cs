@@ -26,7 +26,7 @@ namespace HotelListing.API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [AllowAnonymous]
-        public async Task<ActionResult> Register([FromBody] ApiUserDto userDto)
+        public async Task<ActionResult> Register([FromBody] RegisterUserDto userDto)
         {
             _logger.LogInformation($"Registration attempt for {userDto.Email}");
             if (userDto == null)

@@ -1,14 +1,13 @@
-﻿using HotelListing.API.Data.Entity;
-using Microsoft.AspNetCore.Identity;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HotelListing.API.Data
+namespace HotelListing.API.Data.Entity
 {
-    public class ApiUser : IdentityUser<int>, IAuditedEntity
+    public class AuditedEntity : IAuditedEntity, IEntity
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public bool IsActive { get; set; }
         public DateTime CreationTime { get; set; }
         public long? CreatorUserId { get; set; }
         public DateTime? LastModificationTime { get; set; }
@@ -16,5 +15,6 @@ namespace HotelListing.API.Data
         public bool IsDeleted { get; set; }
         public long? DeleterUserId { get; set; }
         public DateTime? DeletionTime { get; set; }
+        public int Id { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Audit.Core;
+using AutoMapper;
 using HotelListing.API.Core.Contracts;
 using HotelListing.API.Core.Models.Dto.User;
 using HotelListing.API.Data;
@@ -63,7 +64,7 @@ namespace HotelListing.API.Core.Repository
             };
         }
 
-        public async Task<IEnumerable<IdentityError>> Register(ApiUserDto userDto)
+        public async Task<IEnumerable<IdentityError>> Register(RegisterUserDto userDto)
         {
             _user = _mapper.Map<ApiUser>(userDto);
             _user.UserName = userDto.Email;
@@ -92,8 +93,16 @@ namespace HotelListing.API.Core.Repository
                 new Claim(JwtRegisteredClaimNames.Sub, _user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, _user.Email),
-                new Claim("uid", _user.Id)
+                new Claim("uid", _user.Id.ToString())
             }.Union(userClaims).Union(roleClaims);
+
+            if (_user.Id > 0)
+            {
+                Audit.Core.Configuration.AddCustomAction(ActionType.OnScopeCreated, scope =>
+                {
+                    scope.SetCustomField("UserId", _user.Id);
+                });
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _config["JwtSettings:Issuer"],

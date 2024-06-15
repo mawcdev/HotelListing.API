@@ -16,5 +16,10 @@
   <ItemGroup>
     <ProjectReference Include="..\HotelListing.API.Data\HotelListing.API.Data.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="Models\Dto\Role\" />
+  </ItemGroup>
 
 </Project>

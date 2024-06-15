@@ -1,12 +1,15 @@
-﻿using HotelListing.API.Data;
-using HotelListing.API.Data.Entity;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace HotelListing.API.Core.Models.Dto.User
 {
-    public class ApiUserDto : BaseUserDto
+    public class UpdateUserDto : BaseUserDto
     {
+        [Required]
         public int Id { get; set; }
         public string[] RoleNames { get; set; }
     }

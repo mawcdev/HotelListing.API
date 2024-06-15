@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using HotelListing.API.Data.Entity;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotelListing.API.Data
 {
-    public class Country
+    public class Country : AuditedEntity, IEntity
     {
-        public int Id { get; set; }
+        //public int Id { get; set; }
         public string Name { get; set; }
         public string ShortName { get; set; }
 

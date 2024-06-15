@@ -1,10 +1,15 @@
+using Audit.Core;
 using HotelListing.API;
 using HotelListing.API.Core.Config;
 using HotelListing.API.Core.Contracts;
 using HotelListing.API.Core.Middlewares;
 using HotelListing.API.Core.Repository;
+using HotelListing.API.Core.Users;
 using HotelListing.API.Data;
 using HotelListing.API.Data.Configuration;
+using HotelListing.API.Data.Helpers;
+using HotelListing.API.Data.Interceptors;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 
@@ -24,13 +30,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 var connectionString = builder.Configuration.GetConnectionString("HotelListingDbConnectionString");
-builder.Services.AddDbContext<HotelListingDbContext>(options =>
+
+builder.Services.AddSingleton<UpdateAuditableEntitiesInterceptor>();
+
+builder.Services.AddDbContext<HotelListingDbContext>((sp, options) =>
 {
-    options.UseSqlServer(connectionString);
+    var auditableInterceptor = sp.GetService<UpdateAuditableEntitiesInterceptor>();
+    options.UseSqlServer(connectionString).AddInterceptors(auditableInterceptor);
 });
 
 builder.Services.AddIdentityCore<ApiUser>().
-    AddRoles<IdentityRole>()
+    AddRoles<ApiRole>()
     .AddTokenProvider<DataProtectorTokenProvider<ApiUser>>("HotelListingApi")
     .AddEntityFrameworkStores<HotelListingDbContext>()
     .AddDefaultTokenProviders();
@@ -124,10 +134,12 @@ builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console().ReadFrom.Configuration
 
 builder.Services.AddAutoMapper(typeof(MapperConfig));
 
+builder.Services.AddTransient<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<ICountriesRepository, CountriesRepository>();
 builder.Services.AddScoped<IHotelsRepository, HotelsRepository>();
 builder.Services.AddScoped<IAuthManager, AuthManager>();
+builder.Services.AddScoped<IUsersService, UsersService>();
 
 AuthConfigurer.Configure(builder.Services, builder.Configuration);
 
@@ -155,6 +167,14 @@ builder.Services.AddControllers()
     {
         options.Select().Filter().OrderBy();
     });
+
+// Inject IPrincipal
+builder.Services.AddHttpContextAccessor();
+
+//Audit.Core.Configuration.AddCustomAction(ActionType.OnScopeCreated, scope =>
+//{
+//    scope.SetCustomField("User", HttpContext.User.Identity.GetUserId());
+//});
 
 var app = builder.Build();
 
@@ -274,6 +294,15 @@ if (bool.Parse(app.Configuration["Caching:IsEnabled"]))
     /// </remarks>
     app.Use(async (context, next) =>
     {
+        //if (context.User.Identity?.IsAuthenticated != true)
+        //{
+        //    var result = await context.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+        //    if (result.Succeeded && result.Principal != null)
+        //    {
+        //        context.User = result.Principal;
+        //    }
+        //}
+
         context.Response.GetTypedHeaders().CacheControl =
             new CacheControlHeaderValue()
             {

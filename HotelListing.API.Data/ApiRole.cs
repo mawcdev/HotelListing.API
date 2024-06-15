@@ -1,14 +1,16 @@
 ﻿using HotelListing.API.Data.Entity;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace HotelListing.API.Data
 {
-    public class ApiUser : IdentityUser<int>, IAuditedEntity
+    public class ApiRole :  IdentityRole<int>, IAuditedEntity
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public bool IsActive { get; set; }
+        public string? Description { get; set; }
         public DateTime CreationTime { get; set; }
         public long? CreatorUserId { get; set; }
         public DateTime? LastModificationTime { get; set; }
